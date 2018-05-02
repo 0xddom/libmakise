@@ -23,6 +23,26 @@ void one_point(Genotype *parent_a, Genotype *parent_b, Genotype *child) {
   }
 }
 
+void two_point(Genotype *parent_a, Genotype *parent_b, Genotype *child) {
+  int i;
+  int p = rand() % parent_a->length;
+  int q = rand() % parent_a->length;
+
+  if (p > q) {
+    int c = p;
+    p = q;
+    q = c;
+  }
+
+  for (i = 0; i < parent_a->length; i++) {
+    child->dna[i] = (i < p || q < i) ?
+      parent_a->dna[i] :
+      parent_b->dna[i];
+  }
+}
+
+// TODO: 50:50 crossover
+
 struct crossover_table_name {
   const char *name;
   crossover_genotypes_func func;
@@ -31,7 +51,8 @@ struct crossover_table_name {
 
 static struct crossover_table_name table[] = {
   { "xor", xor_crossover, "Xors the dna of the two parents." },
-  { "onepoine", one_point, "Picks a point between the dna and splits the parents" },
+  { "one-point", one_point, "Picks a point between the dna and splits the parents" },
+  { "two-point", two_point, "Picks two points between the dna and splits the parents" },
   { NULL, NULL, NULL }
 };
 

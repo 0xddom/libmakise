@@ -4,8 +4,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define RAND_MAX_RANGE 100
+
 void bit_flip(Genotype *g, double mutation_rate) {
-  if ((1/((double)rand()+1)) < mutation_rate) {
+  double r = 1.0 / ((rand() % RAND_MAX_RANGE) + 1);
+  if (r < mutation_rate) {
     int i = rand() % g->length;
     int j = rand() % 8;
 

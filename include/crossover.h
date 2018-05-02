@@ -14,5 +14,6 @@ void print_available_crossover_algorithms(void);
 
 crossover_func(xor_crossover);
 crossover_func(one_point);
+crossover_func(two_point);
 
 #endif
