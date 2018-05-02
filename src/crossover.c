@@ -19,7 +19,7 @@ void one_point(Genotype *parent_a, Genotype *parent_b, Genotype *child) {
   int i, p = rand() % parent_a->length;
 
   for (i = 0; i < parent_a->length; i++) {
-    child->dna[i] = (i < p) ? parent_a->dna[i] ? parent_b->dna[i];
+    child->dna[i] = (i < p) ? parent_a->dna[i] : parent_b->dna[i];
   }
 }
 
@@ -31,6 +31,7 @@ struct crossover_table_name {
 
 static struct crossover_table_name table[] = {
   { "xor", xor_crossover, "Xors the dna of the two parents." },
+  { "onepoine", one_point, "Picks a point between the dna and splits the parents" },
   { NULL, NULL, NULL }
 };
 

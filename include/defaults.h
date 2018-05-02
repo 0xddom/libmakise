@@ -8,7 +8,7 @@
 
 #define DEFAULT_POPULATION 100
 #define DEFAULT_MUTATION bit_flip
-#define DEFAULT_CROSSOVER xor_crossover
+#define DEFAULT_CROSSOVER one_point
 #define DEFAULT_SEED time (0)
 #define DEFAULT_DNA_LEN 100
 #define DEFAULT_GENERATIONS 50
