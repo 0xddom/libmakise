@@ -1,0 +1,12 @@
+---
+executable: build/example
+runs: 1
+params:
+  generations: [20]
+  dna: [10]
+  mutation: [bitflip]
+  crossover: [one-point]
+  tournament: [7]
+  population: [100]
+  mutation-rate: [0.02]
+outdir: runs/example
