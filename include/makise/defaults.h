@@ -14,5 +14,7 @@
 #define DEFAULT_GENERATIONS 50
 #define DEFAULT_TOURNAMENT 7
 #define DEFAULT_MUTATION_RATE 0.02
+#define DEFAULT_OUTPUT stdout
+#define DEFAULT_LOGGER plain_text_log
 
 #endif

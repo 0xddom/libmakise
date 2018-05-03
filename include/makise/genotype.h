@@ -4,6 +4,7 @@
 #define _GENOTYPE_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct fitness_t {
   int hits;
@@ -19,6 +20,6 @@ typedef struct genotype_t {
 
 Genotype *create_empty_genotype(int);
 Genotype *create_random_genotype(int);
-void print_genotype(Genotype *);
+void print_genotype(Genotype *, FILE *f);
 
 #endif

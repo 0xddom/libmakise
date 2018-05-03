@@ -1,28 +1,11 @@
 #include <stdio.h>
-#include <time.h>
 #include <ga.h>
 #include <mutation.h>
 #include <crossover.h>
 #include <parameters.h>
+#include <stdbool.h>
 
-void test_function(Genotype *g) {
-  if (!g->evaluated) {
-    g->evaluated = true;
-    int bytesize = sizeof (char) * 8;
-    int i;
-    
-    for (i = 0; i < g->length; i++) {
-      char byte = g->dna[i];
-      while (byte != 0) {
-	if ((byte & 0x80) == 0x80) g->fitness.hits++;
-	byte = byte << 1;
-      }
-    }
-    
-    g->fitness.value = (double)g->fitness.hits / (g->length * bytesize);
-  }
-}
-
+void makise_eval_one_genotype(Genotype *g);
 
 int main(int argc, char **argv) {
   Parameters *params;
@@ -35,9 +18,11 @@ int main(int argc, char **argv) {
 		    params->seed,
 		    params->tournament_size,
 		    params->mutation_rate,
-		    test_function,
+		    makise_eval_one_genotype,
 		    params->mutation_algo,
-		    params->crossover_algo);
+		    params->crossover_algo,
+		    params->logger,
+		    params->output);
 
   run_problem_up_to_generation (p, params->generations);
   free_problem (p);

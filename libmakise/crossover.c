@@ -12,7 +12,6 @@ void xor_crossover(Genotype *parent_a,
   for (i = 0; i < parent_a->length; i++) {
     child->dna[i] = parent_a->dna[i] ^ parent_b->dna[i];
   }
-
 }
 
 void one_point(Genotype *parent_a, Genotype *parent_b, Genotype *child) {

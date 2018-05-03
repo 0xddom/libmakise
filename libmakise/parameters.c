@@ -6,9 +6,11 @@
 #include <mutation.h>
 #include <crossover.h>
 #include <errors.h>
+#include <string.h>
 #include <time.h>
+#include <errno.h>
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:"
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:"
 
 Parameters *init_params() {
   Parameters *params = (Parameters*)malloc (sizeof (Parameters));
@@ -26,6 +28,8 @@ Parameters *init_params() {
   params->generations = DEFAULT_GENERATIONS;
   params->tournament_size = DEFAULT_TOURNAMENT;
   params->mutation_rate = DEFAULT_MUTATION_RATE;
+  params->output = DEFAULT_OUTPUT;
+  params->logger = DEFAULT_LOGGER;
   
   return params;
 }
@@ -41,6 +45,7 @@ void help() {
   puts ("\t-g | --generations\tThe number of generations to run the algorithm.");
   puts ("\t-t | --tournament\tThe size of the tournament for selecction.");
   puts ("\t-r | --mutation-rate\tThe mutation rate.");
+  puts ("\t-o | --output\t\tFile to write the report. - for stdout.");
   puts ("\t-h | --help\t\tShow this message and exit.");
   puts ("Available mutation algorithms");
   print_available_mutation_algorithms ();
@@ -65,6 +70,8 @@ Parameters *parse_parameters(int argc, char **argv) {
     { "help", no_argument, NULL, 'h' },
     { "tournament", optional_argument, NULL, 't' },
     { "mutation-rate", optional_argument, NULL, 'r' },
+    { "output", optional_argument, NULL, 'o' },
+    { "csv", no_argument, NULL, 'C' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -95,6 +102,23 @@ Parameters *parse_parameters(int argc, char **argv) {
       break;
     case 'r':
       params->mutation_rate = strtod (optarg, NULL);
+      break;
+    case 'o': {
+      FILE *f;
+      if (strcmp (optarg, "-") == 0) {
+	f = stdout;
+      } else {
+	f = fopen (optarg, "w");
+	if (f == NULL) {
+	  fprintf (stderr, "Can't open the output file: %d", errno);
+	  exit (errno);
+	}
+      }
+      params->output = f;
+      break;
+    }
+    case 'C':
+      params->logger = log_step_in_csv;
       break;
     case 'h':
       help ();

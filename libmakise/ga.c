@@ -28,7 +28,9 @@ Problem *init_problem(int population_size,
 		      double mutation_rate,
 		      eval_genotype_func eval_genotype,
 		      mutate_genotype_func mutate_genotype,
-		      crossover_genotypes_func crossover_genotypes) {
+		      crossover_genotypes_func crossover_genotypes,
+		      log_step_func log_step,
+		      FILE *output) {
   Problem *p = (Problem*)malloc (sizeof (Problem));
   int i;
 
@@ -43,6 +45,8 @@ Problem *init_problem(int population_size,
   p->crossover_genotypes = crossover_genotypes;
   p->tournament_size = tournament_size;
   p->mutation_rate = mutation_rate;
+  p->log_step = log_step;
+  p->output = output;
 
   p->population = (Genotype**)malloc (sizeof (Genotype*) * population_size);
 
@@ -170,19 +174,23 @@ void run_problem_up_to_generation(Problem *p, int generations) {
   
   for (i = 0; i < generations; i++) {
     new_population = run_generation_step (p, i);
+    best = get_best (p);
+    p->log_step (best, i, p->output);
     if (problem_has_converged (p)) break;
     replace_generations (p, new_population, p->population);
   }
 
   best = get_best (p);
-  printf ("The problem has finished at %d generation(s)\n", i);
-  printf ("The best fitness is:\n\t");
-  print_genotype (best);
+  fprintf (stderr, "The problem has finished at %d generation(s)\n", i+1);
+  fprintf (stderr, "The best fitness is:\n\t");
+  print_genotype (best, stderr);
 }
 
 
 
 void free_problem(Problem *p) {
   free_population (p->population, p->population_size);
+  if (!(p->output == stdout || p->output == stderr))
+    fclose (p->output);
   free (p);
 }

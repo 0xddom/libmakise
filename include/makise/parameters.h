@@ -4,6 +4,8 @@
 #define _PARAMETERS_H
 
 #include <mutation.h>
+#include <stdio.h>
+#include <ga.h>
 #include <crossover.h>
 
 typedef struct parameters_t {
@@ -15,6 +17,8 @@ typedef struct parameters_t {
   int generations;
   int tournament_size;
   double mutation_rate;
+  FILE *output;
+  log_step_func logger;
 } Parameters;
 
 Parameters *parse_parameters(int,char **);

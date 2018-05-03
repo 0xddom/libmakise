@@ -1,6 +1,5 @@
 #include <genotype.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <errors.h>
 
 Genotype *create_empty_genotype(int dna_length) {
@@ -38,13 +37,13 @@ Genotype *create_random_genotype(int dna_length) {
   return g;
 }
 
-void print_genotype(Genotype *g) {
+void print_genotype(Genotype *g, FILE *f) {
   int i;
 
-  printf ("Genotype (length=%d, dna=\"", g->length);
+  fprintf (f, "Genotype (length=%d, dna=\"", g->length);
   for (i = 0; i < g->length; i++) {
-    printf ("\\x%02hhx", g->dna[i]);
+    fprintf (f, "\\x%02hhx", g->dna[i]);
   }
-  printf ("\", fitness={ hits=%d, value=%g })\n", g->fitness.hits, g->fitness.value);
+  fprintf (f, "\", fitness={ hits=%d, value=%g })\n", g->fitness.hits, g->fitness.value);
   
 }
