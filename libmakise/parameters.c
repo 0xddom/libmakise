@@ -9,8 +9,9 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <ctype.h>
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:"
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:C"
 
 Parameters *init_params() {
   Parameters *params = (Parameters*)malloc (sizeof (Parameters));

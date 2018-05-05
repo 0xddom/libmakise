@@ -18,11 +18,13 @@ void free_population(Genotype **pop, int pop_size) {
   }
 }
 
+#define ARM_INSN_SIZE_BYTES 4
+
 /**
  * Initializes a problem with a random population.
  */
 Problem *init_problem(int population_size,
-		      int dna_length,
+		      int n_insns,
 		      int seed,
 		      int tournament_size,
 		      double mutation_rate,
@@ -38,7 +40,8 @@ Problem *init_problem(int population_size,
     fprintf (stderr, "Can't allocate space for the problem\n");
     exit (ALLOC_ERROR);
   }
-  
+
+  assert (population_size > tournament_size);
   p->population_size = population_size;
   p->eval_genotype = eval_genotype;
   p->mutate_genotype = mutate_genotype;
@@ -58,7 +61,7 @@ Problem *init_problem(int population_size,
 
   srand (seed);
   for (i = 0; i < p->population_size; i++) {
-    p->population[i] = create_random_genotype (dna_length); 
+    p->population[i] = create_random_genotype (n_insns * ARM_INSN_SIZE_BYTES); 
   }
 
   return p;  
@@ -181,7 +184,7 @@ void run_problem_up_to_generation(Problem *p, int generations) {
   }
 
   best = get_best (p);
-  fprintf (stderr, "The problem has finished at %d generation(s)\n", i+1);
+  fprintf (stderr, "The problem has finished in %d generation(s)\n", i+1);
   fprintf (stderr, "The best fitness is:\n\t");
   print_genotype (best, stderr);
 }

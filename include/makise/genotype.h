@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 typedef struct fitness_t {
   int hits;
@@ -13,7 +14,7 @@ typedef struct fitness_t {
 
 typedef struct genotype_t {
   int length;
-  char *dna;
+  uint8_t *dna;
   bool evaluated;
   Fitness fitness;
 } Genotype;
