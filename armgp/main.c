@@ -18,8 +18,43 @@ typedef struct armcpu_t {
   uint32_t regs[UC_ARM_REG_ENDING];
 } ARMCPU;
 
+/*typedef struct userdata_t {
+  uc_engine *uc;
+  csh cs_handle;
+} UserData;
 
-void makise_eval_one_genotype(Genotype *g) {
+void *makise_init_user_data() {
+  int c;
+  uc_err err;
+  UserData *ud = (UserData*)malloc (sizeof (UserData));
+
+  if ((c = cs_open (CS_ARCH_ARM, CS_MODE_ARM, &ud->cs_handle)) != CS_ERR_OK) {
+    fprintf (stderr, "Can't load capstone");
+    exit (c);
+  }
+
+  err = uc_open (UC_ARCH_ARM, UC_MODE_ARM, &ud->uc);
+  if (err != UC_ERR_OK) {
+    fprintf (stderr, "Can't load unicorn");
+    exit ((int)err);
+  }
+    
+  // Map memory
+  uc_mem_map (ud->uc, BASE, EMU_MEM_SIZE, UC_PROT_ALL);
+  
+  return ud;
+}
+
+void makise_free_user_data(void *_ud) {
+  UserData *ud = (UserData*)_ud;
+  
+  cs_close (&ud->cs_handle);
+
+  free (ud);
+}*/
+
+void makise_eval_one_genotype(Genotype *g/*, void *_ud*/) {
+  //UserData *ud = (UserData*)_ud;
   void *dest, *r;
   int i;
   
@@ -38,14 +73,17 @@ void makise_eval_one_genotype(Genotype *g) {
     if (r == NULL) {
       g->fitness.hits = 0;
       g->fitness.value = 0.0;
-      return;
+      goto cleanup;
     }
     
     for (i = 0; i < g->length; i++) {
       if (((uint8_t*)dest)[i] == g->dna[i]) g->fitness.hits++;
     }
     g->fitness.value = (double)g->fitness.hits / g->length;
+
+  cleanup:
     free (dest);
+    return;
   }
 }
 
@@ -139,7 +177,7 @@ void *emulated_memcpy(Genotype *g, void *dest, void *src, size_t n) {
   ret = dest;
 
  cleanup:
-  //if (uc) uc_close (uc);
+  if (uc) uc_close (uc);
   return ret;
 }
 
