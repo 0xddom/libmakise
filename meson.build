@@ -1,7 +1,12 @@
-project('makise', 'c')
+project('makise', 'c', default_options : ['c_std=c11'])
+
+cc = meson.get_compiler('c')
 
 capstone = dependency('capstone', version: '>=3.0.0')
 unicorn = dependency('unicorn', version: '=1.0.2')
+threads = dependency('threads')
+m = cc.find_library('m', required: false)
+glib = dependency('glib-2.0')
 
 libmakise_incdir = include_directories('include/makise')
 libmakise_src = [
@@ -13,7 +18,8 @@ libmakise_src = [
   'libmakise/parameters.c',
   'libmakise/logging.c'
 ]
-libmakise = static_library('makise', libmakise_src, include_directories: libmakise_incdir, dependencies: capstone)
+libmakise = static_library('makise', libmakise_src, include_directories: libmakise_incdir,
+			   dependencies: capstone)
 
 incdir = include_directories('include')
 
@@ -21,4 +27,4 @@ executable('example', 'example/example.c', include_directories: incdir, link_wit
 executable('ascii', 'ascii/ascii.c', include_directories: incdir, link_with: libmakise)
 executable('valid', 'valid/valid.c', include_directories: incdir, link_with: libmakise)
 executable('armgp', 'armgp/main.c', include_directories: incdir, link_with: libmakise,
-	   dependencies: [unicorn])
+	   dependencies: [unicorn, threads, m, glib])
