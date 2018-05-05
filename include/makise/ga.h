@@ -27,6 +27,7 @@ Problem *init_problem(int,int,int,int,double,eval_genotype_func,
 		      mutate_genotype_func,crossover_genotypes_func,
 		      log_step_func, FILE *);
 void free_problem(Problem *);
+void run_problem_until_convergence(Problem *);
 void run_problem_up_to_generation(Problem *, int);
 
 #endif

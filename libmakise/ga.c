@@ -189,6 +189,25 @@ void run_problem_up_to_generation(Problem *p, int generations) {
   print_genotype (best, stderr);
 }
 
+void run_problem_until_convergence(Problem *p) {
+  int i;
+  Genotype **new_population;
+  Genotype *best;
+
+  for (i = 0; ; i++) {
+    new_population = run_generation_step (p, i);
+    best = get_best (p);
+    p->log_step (best, i, p->output);
+    if (problem_has_converged (p)) break;
+    replace_generations (p, new_population, p->population);
+  }
+
+  best = get_best (p);
+  fprintf (stderr, "The problem has finished in %d generation(s)\n", i+1);
+  fprintf (stderr, "The best fitness is:\n\t");
+  print_genotype (best, stderr);
+}
+
 
 
 void free_problem(Problem *p) {

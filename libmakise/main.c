@@ -24,7 +24,8 @@ int main(int argc, char **argv) {
 		    params->logger,
 		    params->output);
 
-  run_problem_up_to_generation (p, params->generations);
+  if (params->generations < 0) run_problem_until_convergence (p);
+  else run_problem_up_to_generation (p, params->generations);
   free_problem (p);
 
   return 0;

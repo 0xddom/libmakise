@@ -7,12 +7,40 @@
 #define RAND_MAX_RANGE 100
 
 void bit_flip(Genotype *g, double mutation_rate) {
-  double r = 1.0 / ((rand() % RAND_MAX_RANGE) + 1);
+  int i,j,k,c;
+  double r = 1.0 / ((rand () % RAND_MAX_RANGE) + 1);
   if (r < mutation_rate) {
-    int i = rand() % g->length;
-    int j = rand() % 8;
+    k = rand () % g->length;
+    for (c = 0; c < k; c++) {
+      i = rand () % g->length;
+      j = rand () % 8;
+      
+      g->dna[i] ^= 1UL << j;
+    }
+  }
+}
 
-    g->dna[i] ^= 1UL << j;
+void exchange(Genotype *g, double mutation_rate) {
+  double r = 1.0 / ((rand () % RAND_MAX_RANGE) + 1);
+  if (r < mutation_rate) {
+    int i = rand () % g->length;
+    int j = rand () % g->length;
+    uint8_t c = g->dna[i];
+    g->dna[i] = g->dna[j];
+    g->dna[j] = c;
+  }
+}
+
+void rewrite(Genotype *g, double mutation_rate) {
+  int p, j;
+  assert ((g->length % 4) == 0);
+
+  double r = 1.0 / ((rand () % RAND_MAX_RANGE) + 1);
+  if (r < mutation_rate) {
+    p = rand () % (g->length / 4);
+    for (j = 0; j < 4; j++) {
+      g->dna[p * 4 + j] = (uint8_t)rand ();
+    }
   }
 }
 
@@ -24,6 +52,8 @@ struct mutation_table_name {
 
 static struct mutation_table_name table[] = {
   { "bitflip", bit_flip, "Flips a random number of bits of the dna." },
+  { "exchange", exchange, "Exchanges two genes in the dna." },
+  { "rewrite", rewrite, "Rewrites random 4 bytes of the dna." },
   { NULL, NULL, NULL }
 };
 

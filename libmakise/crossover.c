@@ -40,7 +40,32 @@ void two_point(Genotype *parent_a, Genotype *parent_b, Genotype *child) {
   }
 }
 
-// TODO: 50:50 crossover
+#define RAND_MAX_RANGE 100
+
+void uniform(Genotype *parent_a, Genotype *parent_b, Genotype *child) {
+  int i;
+  
+  for (i = 0; i < parent_a->length; i++) {
+    double r = 1.0 / ((rand () % RAND_MAX_RANGE) + 1);
+    child->dna[i] = (r < 0.5) ? parent_a->dna[i] : parent_b->dna[i];
+  }
+}
+
+void uniform_4(Genotype *parent_a, Genotype *parent_b, Genotype *child) {
+  assert ((parent_a->length % 4) == 0);
+  assert ((parent_b->length % 4) == 0);
+  assert ((child->length % 4) == 0);
+
+  int i, j;
+  
+  for (i = 0; i < parent_a->length / 4; i++) {
+    double r = 1.0 / ((rand () % RAND_MAX_RANGE) + 1);
+    for (j = 0; j < 4; j++) {
+      child->dna[i * 4 + j] = (r < 0.5) ?
+	parent_a->dna[i * 4 + j] : parent_b->dna[i * 4 + j];
+    }
+  }
+}
 
 struct crossover_table_name {
   const char *name;
@@ -50,8 +75,10 @@ struct crossover_table_name {
 
 static struct crossover_table_name table[] = {
   { "xor", xor_crossover, "Xors the dna of the two parents." },
-  { "one-point", one_point, "Picks a point between the dna and splits the parents" },
-  { "two-point", two_point, "Picks two points between the dna and splits the parents" },
+  { "one-point", one_point, "Picks a point between the dna and splits the parents." },
+  { "two-point", two_point, "Picks two points between the dna and splits the parents." },
+  { "uniform", uniform, "Uniformly picks genes from the two parents." },
+  { "uniform-4bytes", uniform_4, "Uniformly picks pieces of 4 bytes from the two parents." },
   { NULL, NULL, NULL }
 };
 
