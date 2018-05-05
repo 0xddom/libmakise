@@ -3,6 +3,7 @@
 #include <errors.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define RAND_MAX_RANGE 100
 
