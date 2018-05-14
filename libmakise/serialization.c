@@ -96,8 +96,8 @@ int serialize_program_state(Parameters *params, Problem *p, void **buf, bool use
 
   dump (ptr, &(p->population_size), sizeof (int));
   dump (ptr, &(params->seed), sizeof (int));
-  dump (ptr, &(params->dna_length), sizeof (int));
   dump (ptr, &(params->default_seed), sizeof (bool));
+  dump (ptr, &(params->dna_length), sizeof (int));
   dump (ptr, &(params->generations), sizeof (int));
   dump (ptr, &(p->current_gen), sizeof (int));
   dump (ptr, &(p->tournament_size), sizeof (int));
