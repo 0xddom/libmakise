@@ -82,7 +82,8 @@ static int split(char *input, char ***out) {
     p = strchr (p, ',');
     if (p != NULL)  p++;
   }
-  
+
+  if (input != NULL && size == 0) size++;
   return size;
 }
 
@@ -123,6 +124,7 @@ Parameters *parse_parameters(int argc, char **argv) {
       mutate_genotype_func *funcs = (mutate_genotype_func*)malloc (sizeof (mutate_genotype_func) * size);
       for (int i = 0; i < size; i++) {
 	funcs[i] = get_mutation_func (algo_names[i]);
+	printf ("(-m) funcs[%d]=%p\n", i, funcs[i]);
 	free (algo_names[i]);
       }
       free (algo_names);
@@ -136,6 +138,7 @@ Parameters *parse_parameters(int argc, char **argv) {
       crossover_genotypes_func *funcs = (crossover_genotypes_func*)malloc (sizeof (crossover_genotypes_func) * size);
       for (int i = 0; i < size; i++) {
 	funcs[i] = get_crossover_func (algo_names[i]);
+	printf ("(-c) funcs[%d]=%p\n", i, funcs[i]);
 	free (algo_names[i]);
       }
       free (algo_names);

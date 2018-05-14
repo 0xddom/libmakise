@@ -86,6 +86,6 @@ const char *get_mutation_func_name(mutate_genotype_func f) {
     }
   }
 
-  fprintf (stderr, "Mutation algorithm function not recognized\n");
+  fprintf (stderr, "Mutation algorithm function %p not recognized\n", f);
   exit (UNK_PARAM);
 }

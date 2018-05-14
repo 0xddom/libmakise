@@ -40,6 +40,8 @@ int serialize_program_state_to_file(Parameters *params, Problem *problem, char *
 
 
 int calculate_buffer_size(Parameters *params, Problem *p) {
+  int n_algos;
+  
   int size =
     sizeof (int)    + // population_size
     sizeof (int)    + // seed
@@ -49,12 +51,24 @@ int calculate_buffer_size(Parameters *params, Problem *p) {
     sizeof (int)    + // tournament_size
     sizeof (bool)   + // csv
     sizeof (bool)   + // default_seed
+    sizeof (int)    + // n_mutation_funcs
+    sizeof (int)    + // n_crossover_funcs
     sizeof (double);  // mutation_rate
+ 
 
-  const char *crossover_func_name = get_crossover_func_name (p->crossover_genotypes);
-  size += strlen (crossover_func_name) + 1;
-  const char *mutation_func_name = get_mutation_func_name (p->mutate_genotype);
-  size += strlen (mutation_func_name) + 1;
+  n_algos = p->n_crossover_funcs;
+  for (int i = 0; i < n_algos; i++) {
+    crossover_genotypes_func f = p->crossover_genotypes[i];
+    const char *crossover_func_name = get_crossover_func_name (f);
+    size += strlen (crossover_func_name) + 1; // name of crossover func
+  }
+
+  n_algos = p->n_mutation_funcs;
+  for (int i = 0; i < n_algos; i++) {
+    mutate_genotype_func f = p->mutate_genotype[i];
+    const char *mutation_func_name = get_mutation_func_name (f);
+    size += strlen (mutation_func_name) + 1; // name of mutation func
+  }
 
   size += p->population_size *
     (4 * params->dna_length + // dna
@@ -82,18 +96,27 @@ int serialize_program_state(Parameters *params, Problem *p, void **buf, bool use
 
   dump (ptr, &(p->population_size), sizeof (int));
   dump (ptr, &(params->seed), sizeof (int));
-  dump (ptr, &(params->default_seed), sizeof (bool));
   dump (ptr, &(params->dna_length), sizeof (int));
+  dump (ptr, &(params->default_seed), sizeof (bool));
   dump (ptr, &(params->generations), sizeof (int));
   dump (ptr, &(p->current_gen), sizeof (int));
   dump (ptr, &(p->tournament_size), sizeof (int));
   dump (ptr, &(params->use_csv), sizeof (bool));
   dump (ptr, &(p->mutation_rate), sizeof (double));
 
-  const char *crossover_func_name = get_crossover_func_name (p->crossover_genotypes);
-  dump (ptr, crossover_func_name, strlen (crossover_func_name) + 1);
-  const char *mutation_func_name = get_mutation_func_name (p->mutate_genotype);
-  dump (ptr, mutation_func_name, strlen (mutation_func_name) + 1);
+  dump (ptr, &(p->n_crossover_funcs), sizeof (int));
+  for (int i = 0; i < p->n_crossover_funcs; i++) {
+    crossover_genotypes_func f = p->crossover_genotypes[i];
+    const char *crossover_func_name = get_crossover_func_name (f);
+    dump (ptr, crossover_func_name, strlen (crossover_func_name) + 1);
+  }
+
+  dump (ptr, &(p->n_mutation_funcs), sizeof (int));
+  for (int i = 0; i < p->n_mutation_funcs; i++) {
+    mutate_genotype_func f = p->mutate_genotype[i];
+    const char *mutation_func_name = get_mutation_func_name (f);
+    dump (ptr, mutation_func_name, strlen (mutation_func_name) + 1);
+  }
 
   for (i = 0; i < p->population_size; i++) {
     Genotype *g = population[i];
@@ -135,13 +158,21 @@ int deserialize_program_state(Parameters **params, Problem **p, void *buf, int s
   else (*params)->logger = DEFAULT_LOGGER;
   load (ptr, &(*p)->mutation_rate, sizeof (double));
 
-  strncpy (tmp, ptr, TMP_BUF_SIZ);
-  (*p)->crossover_genotypes = get_crossover_func (tmp);
-  ptr += strlen (tmp) + 1;
+  load (ptr, &(*p)->n_crossover_funcs, sizeof (int));
+  (*p)->crossover_genotypes = (crossover_genotypes_func*)malloc (sizeof (crossover_genotypes_func) * (*p)->n_crossover_funcs);
+  for (int i = 0; i < (*p)->n_crossover_funcs; i++) {
+    strncpy (tmp, ptr, TMP_BUF_SIZ);
+    (*p)->crossover_genotypes[i] = get_crossover_func (tmp);
+    ptr += strlen (tmp) + 1;
+  }
 
-  strncpy (tmp, ptr, TMP_BUF_SIZ);
-  (*p)->mutate_genotype = get_mutation_func (tmp);
-  ptr += strlen (tmp) + 1;
+  load (ptr, &(*p)->n_mutation_funcs, sizeof (int));
+  (*p)->mutate_genotype = (mutate_genotype_func*)malloc (sizeof (mutate_genotype_func) * (*p)->n_mutation_funcs);
+  for (int i = 0; i < (*p)->n_mutation_funcs; i++) {
+    strncpy (tmp, ptr, TMP_BUF_SIZ);
+    (*p)->mutate_genotype[i] = get_mutation_func (tmp);
+    ptr += strlen (tmp) + 1;
+  }
     
   if ((*p)->population) {
     free_population ((*p)->population, old_population_size);
