@@ -10,6 +10,7 @@
 typedef void (*crossover_genotypes_func)(Genotype *, Genotype *, Genotype *);
 
 crossover_genotypes_func get_crossover_func(char *);
+const char *get_crossover_func_name(crossover_genotypes_func);
 void print_available_crossover_algorithms(void);
 
 crossover_func(xor_crossover);

@@ -101,3 +101,16 @@ void print_available_crossover_algorithms() {
   for (i = 0; table[i].name != NULL; i++) 
     printf ("\t%s: %s\n", table[i].name, table[i].desc);
 }
+
+const char *get_crossover_func_name(crossover_genotypes_func f) {
+  int i;
+
+  for (i = 0; table[i].func != NULL; i++) {
+    if (f == table[i].func) {
+      return table[i].name;
+    }
+  }
+
+  fprintf (stderr, "Crossover algorithm function not recognized\n");
+  exit (UNK_PARAM);
+}

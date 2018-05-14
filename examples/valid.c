@@ -5,6 +5,9 @@
 #define BASE 0
 #define ARM_INSN_SIZE_BYTES 4
 
+/*
+ * This example evolves code that is correct machine code.
+ */
 void makise_eval_one_genotype(Genotype *g) {
   int c;
   size_t i;

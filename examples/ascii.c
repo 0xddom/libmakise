@@ -2,7 +2,7 @@
 
 /*
  * This example evolves a piece of code that is
- * only composed by ones.
+ * only composed by ascii characters.
  */
 void makise_eval_one_genotype(Genotype *g) {
   if (!g->evaluated) {

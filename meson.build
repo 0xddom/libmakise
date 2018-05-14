@@ -16,15 +16,17 @@ libmakise_src = [
   'libmakise/crossover.c',
   'libmakise/genotype.c',
   'libmakise/parameters.c',
-  'libmakise/logging.c'
+  'libmakise/logging.c',
+  'libmakise/signals.c',
+  'libmakise/serialization.c'
 ]
 libmakise = static_library('makise', libmakise_src, include_directories: libmakise_incdir,
 			   dependencies: capstone)
 
 incdir = include_directories('include')
 
-executable('example', 'example/example.c', include_directories: incdir, link_with: libmakise)
-executable('ascii', 'ascii/ascii.c', include_directories: incdir, link_with: libmakise)
-executable('valid', 'valid/valid.c', include_directories: incdir, link_with: libmakise)
+executable('ones', 'examples/ones.c', include_directories: incdir, link_with: libmakise)
+executable('ascii', 'examples/ascii.c', include_directories: incdir, link_with: libmakise)
+executable('valid', 'examples/valid.c', include_directories: incdir, link_with: libmakise)
 executable('armgp', 'armgp/main.c', include_directories: incdir, link_with: libmakise,
 	   dependencies: [unicorn, threads, m, glib])

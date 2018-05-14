@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BASE 0x10000
-#define INPUT_ADDR 0x30000
-#define OUTPUT_ADDR 0x40000
+#define BASE 0x100000
+#define INPUT_ADDR 0x300000
+#define OUTPUT_ADDR 0x400000
+#define STACK_ADDR 0x500000
 #define ARM_INSN_SIZE_BYTES 4
 #define EMU_MEM_SIZE 10 * 1024 * 2014 /* 10 MB */
 
@@ -18,43 +19,7 @@ typedef struct armcpu_t {
   uint32_t regs[UC_ARM_REG_ENDING];
 } ARMCPU;
 
-/*typedef struct userdata_t {
-  uc_engine *uc;
-  csh cs_handle;
-} UserData;
-
-void *makise_init_user_data() {
-  int c;
-  uc_err err;
-  UserData *ud = (UserData*)malloc (sizeof (UserData));
-
-  if ((c = cs_open (CS_ARCH_ARM, CS_MODE_ARM, &ud->cs_handle)) != CS_ERR_OK) {
-    fprintf (stderr, "Can't load capstone");
-    exit (c);
-  }
-
-  err = uc_open (UC_ARCH_ARM, UC_MODE_ARM, &ud->uc);
-  if (err != UC_ERR_OK) {
-    fprintf (stderr, "Can't load unicorn");
-    exit ((int)err);
-  }
-    
-  // Map memory
-  uc_mem_map (ud->uc, BASE, EMU_MEM_SIZE, UC_PROT_ALL);
-  
-  return ud;
-}
-
-void makise_free_user_data(void *_ud) {
-  UserData *ud = (UserData*)_ud;
-  
-  cs_close (&ud->cs_handle);
-
-  free (ud);
-}*/
-
-void makise_eval_one_genotype(Genotype *g/*, void *_ud*/) {
-  //UserData *ud = (UserData*)_ud;
+void makise_eval_one_genotype(Genotype *g) {
   void *dest, *r;
   int i;
   
@@ -96,6 +61,7 @@ void *emulated_memcpy(Genotype *g, void *dest, void *src, size_t n) {
 #define r0 cpu.regs[UC_ARM_REG_R0]
 #define r1 cpu.regs[UC_ARM_REG_R1]
 #define r2 cpu.regs[UC_ARM_REG_R2]
+#define sp cpu.regs[UC_ARM_REG_R13]
   
   uc_err err;
   uc_engine *uc;
@@ -138,6 +104,7 @@ void *emulated_memcpy(Genotype *g, void *dest, void *src, size_t n) {
   r0 = OUTPUT_ADDR;
   r1 = INPUT_ADDR;
   r2 = n;
+  sp = STACK_ADDR;
   
   // Load the registers in the CPU
   for (i = 0; i < UC_ARM_REG_ENDING; i++) {
@@ -187,15 +154,15 @@ bool is_valid_code(Genotype *g) {
   cs_insn *insn;
   csh cs_handle;
 
-   if ((c = cs_open (CS_ARCH_ARM, CS_MODE_ARM, &cs_handle)) != CS_ERR_OK) {
-     fprintf (stderr, "Can't load capstone");
-     exit (c);
-   }
+  if ((c = cs_open (CS_ARCH_ARM, CS_MODE_ARM, &cs_handle)) != CS_ERR_OK) {
+    fprintf (stderr, "Can't load capstone");
+    exit (c);
+  }
 
-   i = cs_disasm (cs_handle, g->dna, g->length, BASE, 0, &insn);
-
-   cs_free (insn, i);
-   cs_close (&cs_handle);
-   
-   return (i * ARM_INSN_SIZE_BYTES) == g->length;
+  i = cs_disasm (cs_handle, g->dna, g->length, BASE, 0, &insn);
+  
+  cs_free (insn, i);
+  cs_close (&cs_handle);
+  
+  return (i * ARM_INSN_SIZE_BYTES) == g->length;
 }

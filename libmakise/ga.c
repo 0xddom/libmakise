@@ -4,6 +4,7 @@
 #include <errors.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <time.h>
 
 void free_genotype(Genotype *g) {
   free (g->dna);
@@ -50,8 +51,9 @@ Problem *init_problem(int population_size,
   p->mutation_rate = mutation_rate;
   p->log_step = log_step;
   p->output = output;
+  p->current_gen = 0;
 
-  p->population = (Genotype**)malloc (sizeof (Genotype*) * population_size);
+  p->last_good_population = p->population = (Genotype**)malloc (sizeof (Genotype*) * population_size);
 
   if (p->population == NULL) {
     fprintf (stderr, "Can't allocate space for the population\n");
@@ -96,7 +98,7 @@ Genotype *tournament_selection(Problem *p) {
     Genotype *candidate;
     candidate = random_unique_genotype_from_population (p->population_size, p->population, already_selected, i);
     if (!candidate->evaluated) {
-      p->eval_genotype(candidate);
+      p->eval_genotype (candidate);
       candidate->evaluated = true;
     }
     if (choosen_one == NULL || candidate->fitness.value > choosen_one->fitness.value) {
@@ -111,8 +113,12 @@ Genotype *tournament_selection(Problem *p) {
 }
 
 void replace_generations(Problem *p, Genotype **new_population, Genotype **old_population) {
+  Genotype **clean = p->last_good_population;
+  
   p->population = new_population;
-  free_population (old_population, p->population_size);
+  p->last_good_population = old_population;
+  if (clean != p->last_good_population)
+    free_population (clean, p->population_size);
 }
 
 Genotype **run_generation_step(Problem *p, int generation) {
@@ -170,42 +176,45 @@ Genotype *get_best(Problem *p) {
   return best;
 }
 
-void run_problem_up_to_generation(Problem *p, int generations) {
-  int i;
-  Genotype **new_population;
+static void end_step(Problem *p) {
   Genotype *best;
-  
-  for (i = 0; i < generations; i++) {
-    new_population = run_generation_step (p, i);
-    best = get_best (p);
-    p->log_step (best, i, p->output);
-    if (problem_has_converged (p)) { i++; break; }
-    replace_generations (p, new_population, p->population);
-  }
 
   best = get_best (p);
-  fprintf (stderr, "The problem has finished in %d generation(s)\n", i);
+  fprintf (stderr, "The problem has finished in %d generation(s)\n", p->current_gen);
   fprintf (stderr, "The best fitness is:\n\t");
   print_genotype (best, stderr);
 }
 
-void run_problem_until_convergence(Problem *p) {
-  int i;
+static bool evo_step(Problem *p) {
   Genotype **new_population;
   Genotype *best;
+  
+  new_population = run_generation_step (p, p->current_gen);
+  best = get_best (p);
+  
+  p->log_step (best, p->current_gen, p->output);
 
-  for (i = 0; ; i++) {
-    new_population = run_generation_step (p, i);
-    best = get_best (p);
-    p->log_step (best, i, p->output);
-    if (problem_has_converged (p)) break;
-    replace_generations (p, new_population, p->population);
+  if (problem_has_converged (p)) { p->current_gen++; return true; }
+
+  replace_generations (p, new_population, p->population);
+
+  return false;
+}
+
+void run_problem_up_to_generation(Problem *p, int generations) {
+  for (; p->current_gen < generations; p->current_gen++) {
+    if (evo_step (p)) break;
   }
 
-  best = get_best (p);
-  fprintf (stderr, "The problem has finished in %d generation(s)\n", i+1);
-  fprintf (stderr, "The best fitness is:\n\t");
-  print_genotype (best, stderr);
+  end_step (p);
+}
+
+void run_problem_until_convergence(Problem *p) {
+  for (;; p->current_gen++) {
+    if (evo_step (p)) break;
+  }
+
+  end_step (p);
 }
 
 

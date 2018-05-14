@@ -11,8 +11,6 @@
 #include <errno.h>
 #include <ctype.h>
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:C"
-
 Parameters *init_params() {
   Parameters *params = (Parameters*)malloc (sizeof (Parameters));
 
@@ -25,12 +23,16 @@ Parameters *init_params() {
   params->mutation_algo = DEFAULT_MUTATION;
   params->crossover_algo = DEFAULT_CROSSOVER;
   params->seed = DEFAULT_SEED;
+  params->default_seed = true;
   params->dna_length = DEFAULT_DNA_LEN;
   params->generations = DEFAULT_GENERATIONS;
   params->tournament_size = DEFAULT_TOURNAMENT;
   params->mutation_rate = DEFAULT_MUTATION_RATE;
   params->output = DEFAULT_OUTPUT;
   params->logger = DEFAULT_LOGGER;
+  params->use_csv = false;
+  params->do_restore = false;
+  params->restore_file = NULL;
   
   return params;
 }
@@ -54,12 +56,15 @@ void help() {
   print_available_crossover_algorithms ();
 }
 
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:"
+
 Parameters *parse_parameters(int argc, char **argv) {
   Parameters *params;
   int c;
   int longidx;
 
   params = init_params ();
+  params->prog_name = argv[0];
   
   struct option options[] = {
     { "population", optional_argument, NULL, 'p' },
@@ -73,6 +78,7 @@ Parameters *parse_parameters(int argc, char **argv) {
     { "mutation-rate", optional_argument, NULL, 'r' },
     { "output", optional_argument, NULL, 'o' },
     { "csv", no_argument, NULL, 'C' },
+    { "restore", optional_argument, NULL, 'R' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -94,6 +100,7 @@ Parameters *parse_parameters(int argc, char **argv) {
       break;
     case 's':
       params->seed = atoi (optarg);
+      params->default_seed = false;
       break;
     case 'g':
       params->generations = atoi (optarg);
@@ -111,7 +118,7 @@ Parameters *parse_parameters(int argc, char **argv) {
       } else {
 	f = fopen (optarg, "w");
 	if (f == NULL) {
-	  fprintf (stderr, "Can't open the output file: %d", errno);
+	  fprintf (stderr, "Can't open the output file (%s): %s\n", optarg, strerror(errno));
 	  exit (errno);
 	}
       }
@@ -120,7 +127,20 @@ Parameters *parse_parameters(int argc, char **argv) {
     }
     case 'C':
       params->logger = log_step_in_csv;
+      params->use_csv = true;
       break;
+    case 'R': {
+      FILE *f;
+      f = fopen (optarg, "r");
+      if (f == NULL) {
+	fprintf (stderr, "Can't open the restore file (%s): %s\n", optarg, strerror(errno));
+	exit (errno);
+      }
+      
+      params->restore_file = f;
+      params->do_restore = true;
+      break;
+    }
     case 'h':
       help ();
       exit (0);

@@ -10,6 +10,7 @@
 typedef void (*mutate_genotype_func)(Genotype *, double);
 
 mutate_genotype_func get_mutation_func(char *);
+const char *get_mutation_func_name(mutate_genotype_func);
 void print_available_mutation_algorithms(void);
 
 mutation_func(bit_flip);
