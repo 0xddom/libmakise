@@ -24,7 +24,9 @@ int main(int argc, char **argv) {
 		    params->mutation_rate,
 		    makise_eval_one_genotype,
 		    params->mutation_algo,
+		    params->n_mutation_funcs,
 		    params->crossover_algo,
+		    params->n_crossover_funcs,
 		    params->logger,
 		    params->output);
 

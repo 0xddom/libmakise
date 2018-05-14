@@ -15,8 +15,10 @@ typedef struct problem_t {
   int population_size;
   Genotype **population;
   eval_genotype_func eval_genotype;
-  mutate_genotype_func mutate_genotype;
-  crossover_genotypes_func crossover_genotypes;
+  int n_mutation_funcs;
+  int n_crossover_funcs;
+  mutate_genotype_func *mutate_genotype;
+  crossover_genotypes_func *crossover_genotypes;
   log_step_func log_step;
   int tournament_size;
   double mutation_rate;
@@ -26,7 +28,7 @@ typedef struct problem_t {
 } Problem;
 
 Problem *init_problem(int,int,int,int,double,eval_genotype_func,
-		      mutate_genotype_func,crossover_genotypes_func,
+		      mutate_genotype_func *,int,crossover_genotypes_func *,int,
 		      log_step_func, FILE *);
 void free_problem(Problem *);
 void free_population(Genotype **, int);

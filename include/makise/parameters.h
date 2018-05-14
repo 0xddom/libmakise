@@ -10,8 +10,10 @@
 
 typedef struct parameters_t {
   int population_size;
-  mutate_genotype_func mutation_algo;
-  crossover_genotypes_func crossover_algo;
+  int n_mutation_funcs;
+  int n_crossover_funcs;
+  mutate_genotype_func *mutation_algo;
+  crossover_genotypes_func *crossover_algo;
   int seed;
   int dna_length;
   int generations;

@@ -30,8 +30,10 @@ Problem *init_problem(int population_size,
 		      int tournament_size,
 		      double mutation_rate,
 		      eval_genotype_func eval_genotype,
-		      mutate_genotype_func mutate_genotype,
-		      crossover_genotypes_func crossover_genotypes,
+		      mutate_genotype_func *mutate_genotype,
+		      int mutate_genotype_func_count,
+		      crossover_genotypes_func *crossover_genotypes,
+		      int crossover_genotypes_func_count,
 		      log_step_func log_step,
 		      FILE *output) {
   Problem *p = (Problem*)malloc (sizeof (Problem));
@@ -46,7 +48,9 @@ Problem *init_problem(int population_size,
   p->population_size = population_size;
   p->eval_genotype = eval_genotype;
   p->mutate_genotype = mutate_genotype;
+  p->n_mutation_funcs = mutate_genotype_func_count;
   p->crossover_genotypes = crossover_genotypes;
+  p->n_crossover_funcs = crossover_genotypes_func_count;
   p->tournament_size = tournament_size;
   p->mutation_rate = mutation_rate;
   p->log_step = log_step;
@@ -142,8 +146,12 @@ Genotype **run_generation_step(Problem *p, int generation) {
     } while (parents[0] == parents[1]);
     child = create_empty_genotype (parents[0]->length);
 
-    p->crossover_genotypes (parents[0], parents[1], child);
-    p->mutate_genotype (child, p->mutation_rate);
+    p->crossover_genotypes[(p->n_crossover_funcs > 1) ?
+			   rand() % p->n_crossover_funcs :
+			   0] (parents[0], parents[1], child);
+    p->mutate_genotype[(p->n_mutation_funcs > 1) ?
+		       rand() % p->n_mutation_funcs :
+		       0] (child, p->mutation_rate);
 
     new_population[i] = child;
   }
@@ -220,8 +228,12 @@ void run_problem_until_convergence(Problem *p) {
 
 
 void free_problem(Problem *p) {
+  if (p->last_good_population != p->population)
+    free_population (p->last_good_population, p->population_size);
   free_population (p->population, p->population_size);
   if (!(p->output == stdout || p->output == stderr))
     fclose (p->output);
+  free (p->mutate_genotype);
+  free (p->crossover_genotypes);
   free (p);
 }

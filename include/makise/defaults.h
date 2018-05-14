@@ -7,7 +7,9 @@
 #include <crossover.h>
 
 #define DEFAULT_POPULATION 100
+#define DEFAULT_MUTATION_FUNCS 1
 #define DEFAULT_MUTATION bit_flip
+#define DEFAULT_CROSSOVER_FUNCS 1
 #define DEFAULT_CROSSOVER one_point
 #define DEFAULT_SEED time (0)
 #define DEFAULT_DNA_LEN 100

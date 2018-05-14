@@ -20,8 +20,10 @@ Parameters *init_params() {
   }
   
   params->population_size = DEFAULT_POPULATION;
-  params->mutation_algo = DEFAULT_MUTATION;
-  params->crossover_algo = DEFAULT_CROSSOVER;
+  params->mutation_algo = (mutate_genotype_func*)malloc (sizeof (mutate_genotype_func) * DEFAULT_MUTATION_FUNCS);
+  params->mutation_algo[0] = DEFAULT_MUTATION;
+  params->crossover_algo = (crossover_genotypes_func*)malloc (sizeof (crossover_genotypes_func) * DEFAULT_CROSSOVER_FUNCS);
+  params->crossover_algo[0] = DEFAULT_CROSSOVER;
   params->seed = DEFAULT_SEED;
   params->default_seed = true;
   params->dna_length = DEFAULT_DNA_LEN;
@@ -58,6 +60,32 @@ void help() {
 
 #define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:"
 
+static int split(char *input, char ***out) {
+  int size;
+  int i;
+  char *p;
+  
+  for (p = strchr (input, ','), size = 0; p != NULL; size++) {
+    p = strchr (p, ',');
+    if (p != NULL) p++;
+  }
+
+  *out = (char **)malloc (sizeof (char *) * size);
+  if (*out == NULL) return -1;
+
+  for (p = input, i = 0; p != NULL; i++) {
+    int ss = strlen (p);
+    (*out)[i] = (char *)malloc (sizeof (char) * ss);
+    strcpy ((*out)[i], p);
+    char *q = strchr ((*out)[i], ',');
+    if (q != NULL) *q = '\0';
+    p = strchr (p, ',');
+    if (p != NULL)  p++;
+  }
+  
+  return size;
+}
+
 Parameters *parse_parameters(int argc, char **argv) {
   Parameters *params;
   int c;
@@ -89,12 +117,32 @@ Parameters *parse_parameters(int argc, char **argv) {
     case 'p':
       params->population_size = atoi (optarg);
       break;
-    case 'm':
-      params->mutation_algo = get_mutation_func (optarg);
+    case 'm': {
+      char **algo_names;
+      int size = split (optarg, &algo_names);
+      mutate_genotype_func *funcs = (mutate_genotype_func*)malloc (sizeof (mutate_genotype_func) * size);
+      for (int i = 0; i < size; i++) {
+	funcs[i] = get_mutation_func (algo_names[i]);
+	free (algo_names[i]);
+      }
+      free (algo_names);
+      params->mutation_algo = funcs;
+      params->n_mutation_funcs = size;
       break;
-    case 'c':
-      params->crossover_algo = get_crossover_func (optarg);
+    }
+    case 'c': {
+      char **algo_names;
+      int size = split (optarg, &algo_names);
+      crossover_genotypes_func *funcs = (crossover_genotypes_func*)malloc (sizeof (crossover_genotypes_func) * size);
+      for (int i = 0; i < size; i++) {
+	funcs[i] = get_crossover_func (algo_names[i]);
+	free (algo_names[i]);
+      }
+      free (algo_names);
+      params->crossover_algo = funcs;
+      params->n_crossover_funcs = size;
       break;
+    }
     case 'd':
       params->dna_length = atoi (optarg);
       break;
