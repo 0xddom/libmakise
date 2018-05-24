@@ -17,18 +17,7 @@ int main(int argc, char **argv) {
 
   params = parse_parameters (argc, argv);
   
-  p = init_problem (params->population_size,
-		    params->dna_length,
-		    params->seed,
-		    params->tournament_size,
-		    params->mutation_rate,
-		    makise_eval_one_genotype,
-		    params->mutation_algo,
-		    params->n_mutation_funcs,
-		    params->crossover_algo,
-		    params->n_crossover_funcs,
-		    params->logger,
-		    params->output);
+  p = init_problem (params, makise_eval_one_genotype);
 
   if (params->do_restore) {
     fseek (params->restore_file, 0, SEEK_END);

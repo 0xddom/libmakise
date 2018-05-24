@@ -18,5 +18,6 @@
 #define DEFAULT_MUTATION_RATE 0.02
 #define DEFAULT_OUTPUT stdout
 #define DEFAULT_LOGGER plain_text_log
+#define DEFAULT_PARTITIONS 1
 
 #endif

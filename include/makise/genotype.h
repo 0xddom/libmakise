@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+typedef bool gender;
+
 typedef struct fitness_t {
   int hits;
   double value;
@@ -22,5 +24,6 @@ typedef struct genotype_t {
 Genotype *create_empty_genotype(int);
 Genotype *create_random_genotype(int);
 void print_genotype(Genotype *, FILE *f);
+gender get_gender(Genotype *);
 
 #endif

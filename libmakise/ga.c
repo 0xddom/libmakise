@@ -24,18 +24,7 @@ void free_population(Genotype **pop, int pop_size) {
 /**
  * Initializes a problem with a random population.
  */
-Problem *init_problem(int population_size,
-		      int n_insns,
-		      int seed,
-		      int tournament_size,
-		      double mutation_rate,
-		      eval_genotype_func eval_genotype,
-		      mutate_genotype_func *mutate_genotype,
-		      int mutate_genotype_func_count,
-		      crossover_genotypes_func *crossover_genotypes,
-		      int crossover_genotypes_func_count,
-		      log_step_func log_step,
-		      FILE *output) {
+Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
   Problem *p = (Problem*)malloc (sizeof (Problem));
   int i;
 
@@ -44,30 +33,32 @@ Problem *init_problem(int population_size,
     exit (ALLOC_ERROR);
   }
 
-  assert (population_size > tournament_size);
-  p->population_size = population_size;
+  assert (params->population_size > params->tournament_size);
+  p->population_size = params->population_size;
   p->eval_genotype = eval_genotype;
-  p->mutate_genotype = mutate_genotype;
-  p->n_mutation_funcs = mutate_genotype_func_count;
-  p->crossover_genotypes = crossover_genotypes;
-  p->n_crossover_funcs = crossover_genotypes_func_count;
-  p->tournament_size = tournament_size;
-  p->mutation_rate = mutation_rate;
-  p->log_step = log_step;
-  p->output = output;
+  p->mutate_genotype = params->mutation_algo;
+  p->n_mutation_funcs = params->n_mutation_funcs;
+  p->crossover_genotypes = params->crossover_algo;
+  p->n_crossover_funcs = params->n_crossover_funcs;
+  p->tournament_size = params->tournament_size;
+  p->mutation_rate = params->mutation_rate;
+  p->log_step = params->logger;
+  p->output = params->output;
   p->current_gen = 0;
+  p->partitions = params->partitions;
 
-  p->last_good_population = p->population = (Genotype**)malloc (sizeof (Genotype*) * population_size);
+  p->population = (Genotype**)malloc (sizeof (Genotype*) * params->population_size);
+  p->last_good_population = p->population;
 
   if (p->population == NULL) {
     fprintf (stderr, "Can't allocate space for the population\n");
     free (p);
-    exit(ALLOC_ERROR);
+    exit (ALLOC_ERROR);
   }
 
-  srand (seed);
+  srand (params->seed);
   for (i = 0; i < p->population_size; i++) {
-    p->population[i] = create_random_genotype (n_insns * ARM_INSN_SIZE_BYTES); 
+    p->population[i] = create_random_genotype (params->dna_length * ARM_INSN_SIZE_BYTES); 
   }
 
   return p;  
@@ -85,7 +76,7 @@ Genotype *random_unique_genotype_from_population(int pop_size, Genotype **popula
   Genotype *candidate;
 
   do {
-    candidate = population[rand() % pop_size];
+    candidate = population[rand () % pop_size];
   } while (genotype_in_population (candidate, already_selected, selected_size));
 
   return candidate;
@@ -125,6 +116,18 @@ void replace_generations(Problem *p, Genotype **new_population, Genotype **old_p
     free_population (clean, p->population_size);
 }
 
+static void crossover(Problem *p, Genotype **parents, Genotype *child) {
+  p->crossover_genotypes[(p->n_crossover_funcs > 1) ?
+			 rand() % p->n_crossover_funcs :
+			 0] (parents[0], parents[1], child);
+}
+
+static void mutate(Problem *p, Genotype *child) {
+  p->mutate_genotype[(p->n_mutation_funcs > 1) ?
+		     rand () % p->n_mutation_funcs :
+		     0] (child, p->mutation_rate);
+}
+
 Genotype **run_generation_step(Problem *p, int generation) {
   int i;
   Genotype **new_population;
@@ -146,12 +149,8 @@ Genotype **run_generation_step(Problem *p, int generation) {
     } while (parents[0] == parents[1]);
     child = create_empty_genotype (parents[0]->length);
 
-    p->crossover_genotypes[(p->n_crossover_funcs > 1) ?
-			   rand() % p->n_crossover_funcs :
-			   0] (parents[0], parents[1], child);
-    p->mutate_genotype[(p->n_mutation_funcs > 1) ?
-		       rand() % p->n_mutation_funcs :
-		       0] (child, p->mutation_rate);
+    crossover (p, parents, child);
+    mutate (p, child);
 
     new_population[i] = child;
   }

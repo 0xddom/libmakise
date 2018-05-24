@@ -1,0 +1,21 @@
+# Evaluation configuration.
+---
+executable: build/ones
+runs: 1
+params:
+  generations: [100000]
+  dna: [1, 10, 50]
+  mutation:
+    - bitflip
+    - exchange
+    - rewrite
+  crossover:
+    - xor
+    - one-point
+    - two-point
+    - uniform
+    - uniform-4bytes
+  population: [100]
+  tournament: [7]
+  mutation-rate: [0.02]
+outdir: ../makise-datasets/ones

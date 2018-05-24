@@ -5,7 +5,7 @@
 
 #include <mutation.h>
 #include <stdio.h>
-#include <ga.h>
+#include <logging.h>
 #include <crossover.h>
 
 typedef struct parameters_t {
@@ -26,6 +26,7 @@ typedef struct parameters_t {
   bool do_restore;
   FILE *restore_file;
   bool default_seed;
+  int partitions;
 } Parameters;
 
 Parameters *parse_parameters(int,char **);

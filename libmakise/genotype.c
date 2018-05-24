@@ -62,6 +62,17 @@ static void print_byte(uint8_t b, FILE *f) {
 #define WIDTH 16
 #define BASE 0x1000
 
+#define FEMALE true
+#define MALE false
+
+gender get_gender(Genotype *g) {
+  return g->dna[0] % 2;
+}
+
+static char get_gender_name(Genotype *g) {
+  return "MF"[get_gender (g)];
+}
+
 void print_genotype(Genotype *g, FILE *f) {
   size_t i, j, k;
   csh handle;
@@ -75,8 +86,8 @@ void print_genotype(Genotype *g, FILE *f) {
     exit (c);
   }
   
-  fprintf (f, "Genotype (length=%d, fitness={ hits=%d, value=%g })\n",
-	   g->length, g->fitness.hits, g->fitness.value);
+  fprintf (f, "Genotype (length=%d, fitness={ hits=%d, value=%g }, gender=%c)\n",
+	   g->length, g->fitness.hits, g->fitness.value, get_gender_name (g));
   i = cs_disasm (handle, g->dna, g->length, base, 0, &insn);
   if (i > 0) {
     fprintf (f, "\tCode:\n");

@@ -32,6 +32,7 @@ Parameters *init_params() {
   params->mutation_rate = DEFAULT_MUTATION_RATE;
   params->output = DEFAULT_OUTPUT;
   params->logger = DEFAULT_LOGGER;
+  params->partitions = DEFAULT_PARTITIONS;
   params->use_csv = false;
   params->do_restore = false;
   params->restore_file = NULL;
@@ -58,7 +59,7 @@ void help() {
   print_available_crossover_algorithms ();
 }
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:"
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:"
 
 static int split(char *input, char ***out) {
   int size;
@@ -108,6 +109,7 @@ Parameters *parse_parameters(int argc, char **argv) {
     { "output", optional_argument, NULL, 'o' },
     { "csv", no_argument, NULL, 'C' },
     { "restore", optional_argument, NULL, 'R' },
+    { "islands", optional_argument, NULL, 'i' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -124,7 +126,6 @@ Parameters *parse_parameters(int argc, char **argv) {
       mutate_genotype_func *funcs = (mutate_genotype_func*)malloc (sizeof (mutate_genotype_func) * size);
       for (int i = 0; i < size; i++) {
 	funcs[i] = get_mutation_func (algo_names[i]);
-	printf ("(-m) funcs[%d]=%p\n", i, funcs[i]);
 	free (algo_names[i]);
       }
       free (algo_names);
@@ -138,7 +139,6 @@ Parameters *parse_parameters(int argc, char **argv) {
       crossover_genotypes_func *funcs = (crossover_genotypes_func*)malloc (sizeof (crossover_genotypes_func) * size);
       for (int i = 0; i < size; i++) {
 	funcs[i] = get_crossover_func (algo_names[i]);
-	printf ("(-c) funcs[%d]=%p\n", i, funcs[i]);
 	free (algo_names[i]);
       }
       free (algo_names);
@@ -161,6 +161,9 @@ Parameters *parse_parameters(int argc, char **argv) {
       break;
     case 'r':
       params->mutation_rate = strtod (optarg, NULL);
+      break;
+    case 'i':
+      params->partitions = atoi (optarg);
       break;
     case 'o': {
       FILE *f;
