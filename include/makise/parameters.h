@@ -27,6 +27,8 @@ typedef struct parameters_t {
   FILE *restore_file;
   bool default_seed;
   int partitions;
+  int cromosomes;
+  int n_mitocondrial;
 } Parameters;
 
 Parameters *parse_parameters(int,char **);

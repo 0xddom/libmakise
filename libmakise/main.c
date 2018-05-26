@@ -10,8 +10,13 @@
 #include <errors.h>
 
 void makise_eval_one_genotype(Genotype *g);
+int run(int, char **);
 
 int main(int argc, char **argv) {
+  run (argc, argv);
+}
+
+int run(int argc, char **argv) {
   Parameters *params;
   Problem *p;
 
@@ -35,7 +40,7 @@ int main(int argc, char **argv) {
     fclose (params->restore_file);
   }
   
-  setup_signals (params, p);
+  //setup_signals (params, p);
   
   if (params->generations < 0) run_problem_until_convergence (p);
   else run_problem_up_to_generation (p, params->generations);

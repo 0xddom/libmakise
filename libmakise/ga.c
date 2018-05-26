@@ -19,8 +19,6 @@ void free_population(Genotype **pop, int pop_size) {
   }
 }
 
-#define ARM_INSN_SIZE_BYTES 4
-
 /**
  * Initializes a problem with a random population.
  */
@@ -34,6 +32,8 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
   }
 
   assert (params->population_size > params->tournament_size);
+  assert ((params->population_size % params->partitions) == 0);
+  
   p->population_size = params->population_size;
   p->eval_genotype = eval_genotype;
   p->mutate_genotype = params->mutation_algo;
@@ -58,7 +58,9 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
 
   srand (params->seed);
   for (i = 0; i < p->population_size; i++) {
-    p->population[i] = create_random_genotype (params->dna_length * ARM_INSN_SIZE_BYTES); 
+    p->population[i] = create_random_genotype (params->dna_length,
+					       params->cromosomes,
+					       params->n_mitocondrial); 
   }
 
   return p;  
@@ -72,7 +74,10 @@ bool genotype_in_population(Genotype *g, Genotype **lst, int len) {
   return false;
 }
 
-Genotype *random_unique_genotype_from_population(int pop_size, Genotype **population, Genotype **already_selected, int selected_size) {
+Genotype *random_unique_genotype_from_population(int pop_size,
+						 Genotype **population,
+						 Genotype **already_selected,
+						 int selected_size) {
   Genotype *candidate;
 
   do {
@@ -82,16 +87,34 @@ Genotype *random_unique_genotype_from_population(int pop_size, Genotype **popula
   return candidate;
 }
 
-Genotype *tournament_selection(Problem *p) {
+Genotype *tournament_selection(Problem *p, gender gdr) {
   Genotype *choosen_one = NULL;
-  int i;
+  int i, retries;
   Genotype **already_selected;
+
+  retries = 0;
 
   already_selected = (Genotype**)calloc (sizeof (Genotype*), p->tournament_size);
   
   for (i = 0; i < p->tournament_size; i++) {
     Genotype *candidate;
-    candidate = random_unique_genotype_from_population (p->population_size, p->population, already_selected, i);
+    candidate = random_unique_genotype_from_population (p->population_size,
+							p->population,
+							already_selected,
+							i);
+
+    if (gdr != get_gender (candidate)) {
+      retries++;
+      // If too much retries without finding a valid candidate of the required gender
+      if (retries >= p->tournament_size) {
+	set_gender (candidate, gdr);
+	retries = 0;
+      } else {
+	i--;
+	continue;
+      }
+    }
+    
     if (!candidate->evaluated) {
       p->eval_genotype (candidate);
       candidate->evaluated = true;
@@ -116,10 +139,13 @@ void replace_generations(Problem *p, Genotype **new_population, Genotype **old_p
     free_population (clean, p->population_size);
 }
 
+#define MOTHER 1
+
 static void crossover(Problem *p, Genotype **parents, Genotype *child) {
   p->crossover_genotypes[(p->n_crossover_funcs > 1) ?
 			 rand() % p->n_crossover_funcs :
 			 0] (parents[0], parents[1], child);
+  copy_mitocondrial_dna (parents[MOTHER], child);
 }
 
 static void mutate(Problem *p, Genotype *child) {
@@ -131,6 +157,8 @@ static void mutate(Problem *p, Genotype *child) {
 Genotype **run_generation_step(Problem *p, int generation) {
   int i;
   Genotype **new_population;
+  Genotype *parents[2];
+  Genotype *child;
 
   new_population = (Genotype**)malloc (sizeof (Genotype *) * p->population_size);
 
@@ -140,14 +168,11 @@ Genotype **run_generation_step(Problem *p, int generation) {
   }
 
   for (i = 0; i < p->population_size; i++) {
-    Genotype *parents[2];
-    Genotype *child;
-
-    parents[0] = tournament_selection (p);
-    do {
-      parents[1] = tournament_selection (p);
-    } while (parents[0] == parents[1]);
-    child = create_empty_genotype (parents[0]->length);
+    parents[0] = tournament_selection (p, MALE);
+    parents[1] = tournament_selection (p, FEMALE);
+    child = create_empty_genotype (parents[0]->dna_length,
+				   parents[0]->n_cromosomes,
+				   parents[0]->n_mitocondrial);
 
     crossover (p, parents, child);
     mutate (p, child);

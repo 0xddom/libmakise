@@ -33,6 +33,8 @@ Parameters *init_params() {
   params->output = DEFAULT_OUTPUT;
   params->logger = DEFAULT_LOGGER;
   params->partitions = DEFAULT_PARTITIONS;
+  params->cromosomes = DEFAULT_CROMOSOMES;
+  params->n_mitocondrial = DEFAULT_MITOCONDRIAS;
   params->use_csv = false;
   params->do_restore = false;
   params->restore_file = NULL;
@@ -59,7 +61,7 @@ void help() {
   print_available_crossover_algorithms ();
 }
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:"
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:M:x:"
 
 static int split(char *input, char ***out) {
   int size;
@@ -110,6 +112,8 @@ Parameters *parse_parameters(int argc, char **argv) {
     { "csv", no_argument, NULL, 'C' },
     { "restore", optional_argument, NULL, 'R' },
     { "islands", optional_argument, NULL, 'i' },
+    { "mitocondrial", optional_argument, NULL, 'M' },
+    { "cromosomes", optional_argument, NULL, 'x' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -148,6 +152,12 @@ Parameters *parse_parameters(int argc, char **argv) {
     }
     case 'd':
       params->dna_length = atoi (optarg);
+      break;
+    case 'M':
+      params->n_mitocondrial = atoi (optarg);
+      break;
+    case 'x':
+      params->cromosomes = atoi (optarg);
       break;
     case 's':
       params->seed = atoi (optarg);

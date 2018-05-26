@@ -53,6 +53,7 @@ int calculate_buffer_size(Parameters *params, Problem *p) {
     sizeof (bool)   + // default_seed
     sizeof (int)    + // n_mutation_funcs
     sizeof (int)    + // n_crossover_funcs
+    sizeof (int)    + // partitions
     sizeof (double);  // mutation_rate
  
 
@@ -100,6 +101,7 @@ int serialize_program_state(Parameters *params, Problem *p, void **buf, bool use
   dump (ptr, &(params->dna_length), sizeof (int));
   dump (ptr, &(params->generations), sizeof (int));
   dump (ptr, &(p->current_gen), sizeof (int));
+  dump (ptr, &(params->partitions), sizeof (int));
   dump (ptr, &(p->tournament_size), sizeof (int));
   dump (ptr, &(params->use_csv), sizeof (bool));
   dump (ptr, &(p->mutation_rate), sizeof (double));
@@ -151,6 +153,8 @@ int deserialize_program_state(Parameters **params, Problem **p, void *buf, int s
   load (ptr, &(*params)->dna_length, sizeof (int));
   load (ptr, &(*params)->generations, sizeof (int));
   load (ptr, &(*p)->current_gen, sizeof (int));
+  load (ptr, &(*params)->partitions, sizeof (int));
+  (*p)->partitions = (*params)->partitions;
   load (ptr, &(*p)->tournament_size, sizeof (int));
   (*params)->tournament_size = (*p)->tournament_size;
   load (ptr, &(*params)->use_csv, sizeof (bool));

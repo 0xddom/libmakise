@@ -19,5 +19,7 @@
 #define DEFAULT_OUTPUT stdout
 #define DEFAULT_LOGGER plain_text_log
 #define DEFAULT_PARTITIONS 1
+#define DEFAULT_CROMOSOMES 1
+#define DEFAULT_MITOCONDRIAS 10
 
 #endif

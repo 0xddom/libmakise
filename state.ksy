@@ -33,6 +33,8 @@ types:
         type: s4
       - id: current_gen
         type: u4
+      - id: partitions
+        type: u4
       - id: tournament_size
         type: u4
       - id: use_csv
