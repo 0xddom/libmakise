@@ -266,8 +266,7 @@ static int compare_two_genotypes (Genotype **p_g1, Genotype **p_g2) {
 #define max(a,b) ((a) > (b)) ? (a) : (b)
 
 static int get_n_migrants(Problem *p) {
-  printf ("%d\n", max(1, (int)floor (p->partition_size * 0.2)));
-  return 0;
+  return max(1, (int)floor (p->partition_size * 0.2));
 }
 
 static void migrate_islands(Problem *p) {

@@ -1,7 +1,6 @@
 #include <genotype.h>
 #include <stdlib.h>
 #include <errors.h>
-#include <capstone/capstone.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <assert.h>
