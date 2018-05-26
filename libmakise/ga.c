@@ -33,7 +33,7 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
 
   assert (params->population_size > params->tournament_size);
   assert ((params->population_size % params->partitions) == 0);
-  
+
   p->population_size = params->population_size;
   p->eval_genotype = eval_genotype;
   p->mutate_genotype = params->mutation_algo;
