@@ -27,6 +27,9 @@ typedef struct problem_t {
   int current_gen;
   Genotype **last_good_population;
   int partitions;
+  int partition_size;
+  Genotype ***islands;
+  int migration_time;
 } Problem;
 
 Problem *init_problem(Parameters *, eval_genotype_func);

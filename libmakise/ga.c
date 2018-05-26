@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
 
 void free_genotype(Genotype *g) {
   free (g->dna);
@@ -16,6 +17,14 @@ void free_population(Genotype **pop, int pop_size) {
 
   for (i = 0; i < pop_size; i++) {
     free_genotype (pop[i]);
+  }
+}
+
+static void update_islands(Problem *p) {
+  int i, j;
+
+  for (i = 0, j = 0; i < p->population_size; i += p->partition_size, j++) {
+    p->islands[j] = &(p->population[i]);
   }
 }
 
@@ -46,6 +55,10 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
   p->output = params->output;
   p->current_gen = 0;
   p->partitions = params->partitions;
+  p->partition_size = params->population_size / params->partitions;
+  p->migration_time = params->migration;
+
+  assert (p->partition_size > params->tournament_size);
 
   p->population = (Genotype**)malloc (sizeof (Genotype*) * params->population_size);
   p->last_good_population = p->population;
@@ -55,6 +68,15 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
     free (p);
     exit (ALLOC_ERROR);
   }
+
+  p->islands = (Genotype***)malloc (sizeof (Genotype**) * params->partitions);
+
+  if (p->islands == NULL) {
+    fprintf (stderr, "Can't allocate space for the island pointers\n");
+    exit (ALLOC_ERROR);
+  }
+
+  update_islands (p);
 
   srand (params->seed);
   for (i = 0; i < p->population_size; i++) {
@@ -87,7 +109,7 @@ Genotype *random_unique_genotype_from_population(int pop_size,
   return candidate;
 }
 
-Genotype *tournament_selection(Problem *p, gender gdr) {
+Genotype *tournament_selection(Problem *p, Genotype **population, int population_size, gender gdr) {
   Genotype *choosen_one = NULL;
   int i, retries;
   Genotype **already_selected;
@@ -98,8 +120,8 @@ Genotype *tournament_selection(Problem *p, gender gdr) {
   
   for (i = 0; i < p->tournament_size; i++) {
     Genotype *candidate;
-    candidate = random_unique_genotype_from_population (p->population_size,
-							p->population,
+    candidate = random_unique_genotype_from_population (population_size,
+							population,
 							already_selected,
 							i);
 
@@ -137,6 +159,7 @@ void replace_generations(Problem *p, Genotype **new_population, Genotype **old_p
   p->last_good_population = old_population;
   if (clean != p->last_good_population)
     free_population (clean, p->population_size);
+  update_islands (p);
 }
 
 #define MOTHER 1
@@ -155,7 +178,7 @@ static void mutate(Problem *p, Genotype *child) {
 }
 
 Genotype **run_generation_step(Problem *p, int generation) {
-  int i;
+  int i, j;
   Genotype **new_population;
   Genotype *parents[2];
   Genotype *child;
@@ -167,17 +190,20 @@ Genotype **run_generation_step(Problem *p, int generation) {
     exit (ALLOC_ERROR);
   }
 
-  for (i = 0; i < p->population_size; i++) {
-    parents[0] = tournament_selection (p, MALE);
-    parents[1] = tournament_selection (p, FEMALE);
-    child = create_empty_genotype (parents[0]->dna_length,
-				   parents[0]->n_cromosomes,
-				   parents[0]->n_mitocondrial);
-
-    crossover (p, parents, child);
-    mutate (p, child);
-
-    new_population[i] = child;
+  for (j = 0; j < p->partitions; j++) {
+    Genotype **population = p->islands[j];
+    for (i = 0; i < p->partition_size; i++) {
+      parents[0] = tournament_selection (p, population, p->partition_size, MALE);
+      parents[1] = tournament_selection (p, population, p->partition_size, FEMALE);
+      child = create_empty_genotype (parents[0]->dna_length,
+				     parents[0]->n_cromosomes,
+				     parents[0]->n_mitocondrial);
+      
+      crossover (p, parents, child);
+      mutate (p, child);
+      
+      new_population[i + j * p->partition_size] = child;
+    }
   }
 
   return new_population;
@@ -217,11 +243,67 @@ static void end_step(Problem *p) {
   print_genotype (best, stderr);
 }
 
+static Problem *problem;
+
+static int compare_two_genotypes (Genotype **p_g1, Genotype **p_g2) {
+  Genotype *g1 = *p_g1;
+  Genotype *g2 = *p_g2;
+  
+  if (!g1->evaluated) {
+    problem->eval_genotype (g1);
+    g1->evaluated = true;
+  }
+  if (!g2->evaluated) {
+    problem->eval_genotype (g2);
+    g2->evaluated = true;
+  }
+
+  if (g1->fitness.value < g2->fitness.value) return  1;
+  if (g1->fitness.value > g2->fitness.value) return -1;
+  return 0;
+}
+
+#define max(a,b) ((a) > (b)) ? (a) : (b)
+
+static int get_n_migrants(Problem *p) {
+  printf ("%d\n", max(1, (int)floor (p->partition_size * 0.2)));
+  return 0;
+}
+
+static void migrate_islands(Problem *p) {
+  int i, j;
+  int migrants;
+  int new_island;
+
+  if (p->partitions == 1) return; // No need to migrate if there are no other islands
+  
+  // NOT THREAD-SAFE!!!
+  problem = p;
+
+  for (i = 0; i < p->partitions; i++) 
+    qsort (p->islands[i],
+	   p->partition_size,
+	   sizeof (Genotype*),
+	   (__compar_fn_t)compare_two_genotypes);
+
+  migrants = get_n_migrants (p);
+  for (i = 0; i < p->partitions; i++) {
+    for (j = 0; j < migrants; j++) {
+      do new_island = rand () % p->partitions; while (new_island == i);
+      Genotype *tmp = p->islands[i][j];
+      p->islands[i][j] = p->islands[new_island][j];
+      p->islands[i][j] = tmp;
+    }
+  }
+
+  problem = NULL;
+}
+
 static bool evo_step(Problem *p) {
   Genotype **new_population;
   Genotype *best;
-  
   new_population = run_generation_step (p, p->current_gen);
+
   best = get_best (p);
   
   p->log_step (best, p->current_gen, p->output);
@@ -229,6 +311,7 @@ static bool evo_step(Problem *p) {
   if (problem_has_converged (p)) { p->current_gen++; return true; }
 
   replace_generations (p, new_population, p->population);
+  if ((p->current_gen % p->migration_time) == 0) migrate_islands (p);
 
   return false;
 }

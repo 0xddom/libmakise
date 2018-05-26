@@ -38,6 +38,7 @@ Parameters *init_params() {
   params->use_csv = false;
   params->do_restore = false;
   params->restore_file = NULL;
+  params->migration = DEFAULT_MIGRATION;
   
   return params;
 }
@@ -61,7 +62,7 @@ void help() {
   print_available_crossover_algorithms ();
 }
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:M:x:"
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:M:x:G:"
 
 static int split(char *input, char ***out) {
   int size;
@@ -114,6 +115,7 @@ Parameters *parse_parameters(int argc, char **argv) {
     { "islands", optional_argument, NULL, 'i' },
     { "mitocondrial", optional_argument, NULL, 'M' },
     { "cromosomes", optional_argument, NULL, 'x' },
+    { "migration", optional_argument, NULL, 'G' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -152,6 +154,9 @@ Parameters *parse_parameters(int argc, char **argv) {
     }
     case 'd':
       params->dna_length = atoi (optarg);
+      break;
+    case 'G':
+      params->migration = atoi (optarg);
       break;
     case 'M':
       params->n_mitocondrial = atoi (optarg);

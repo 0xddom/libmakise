@@ -21,7 +21,7 @@ libmakise_src = [
   'libmakise/serialization.c'
 ]
 libmakise = static_library('makise', libmakise_src, include_directories: libmakise_incdir,
-			   dependencies: capstone)
+			   dependencies: [capstone, m])
 
 incdir = include_directories('include')
 

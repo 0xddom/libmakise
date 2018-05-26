@@ -29,6 +29,7 @@ typedef struct parameters_t {
   int partitions;
   int cromosomes;
   int n_mitocondrial;
+  int migration;
 } Parameters;
 
 Parameters *parse_parameters(int,char **);
