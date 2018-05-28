@@ -39,6 +39,8 @@ Parameters *init_params() {
   params->do_restore = false;
   params->restore_file = NULL;
   params->migration = DEFAULT_MIGRATION;
+  params->head = DEFAULT_HEAD;
+  params->arity = DEFAULT_ARITY;
   
   return params;
 }
@@ -62,7 +64,7 @@ void help() {
   print_available_crossover_algorithms ();
 }
 
-#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:M:x:G:"
+#define SHORT_OPTIONS "p:m:c:d:s:g:ht:r:o:CR:i:M:x:G:A:"
 
 static int split(char *input, char ***out) {
   int size;
@@ -116,6 +118,7 @@ Parameters *parse_parameters(int argc, char **argv) {
     { "mitocondrial", optional_argument, NULL, 'M' },
     { "cromosomes", optional_argument, NULL, 'x' },
     { "migration", optional_argument, NULL, 'G' },
+    { "arity", optional_argument, NULL, 'A' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -154,6 +157,9 @@ Parameters *parse_parameters(int argc, char **argv) {
     }
     case 'd':
       params->dna_length = atoi (optarg);
+      break;
+    case 'A':
+      params->arity = atoi (optarg);
       break;
     case 'G':
       params->migration = atoi (optarg);

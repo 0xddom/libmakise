@@ -25,5 +25,7 @@ typedef struct {
 
 Tree *compile_to_tree(char *, Sym *);
 void free_tree(Tree *);
+void eval_tree(Tree *, void *);
+int print_tree(Tree *, char *);
 
 #endif

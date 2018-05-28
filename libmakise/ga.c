@@ -42,6 +42,8 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
 
   assert (params->population_size > params->tournament_size);
   assert ((params->population_size % params->partitions) == 0);
+  assert (((params->dna_length - 1) % params->arity) == 0);
+  params->head = (params->dna_length - 1) / params->arity;
 
   p->population_size = params->population_size;
   p->eval_genotype = eval_genotype;
@@ -82,7 +84,8 @@ Problem *init_problem(Parameters *params, eval_genotype_func eval_genotype) {
   for (i = 0; i < p->population_size; i++) {
     p->population[i] = create_random_genotype (params->dna_length,
 					       params->cromosomes,
-					       params->n_mitocondrial); 
+					       params->n_mitocondrial,
+					       params->head); 
   }
 
   return p;  
@@ -197,7 +200,8 @@ Genotype **run_generation_step(Problem *p, int generation) {
       parents[1] = tournament_selection (p, population, p->partition_size, FEMALE);
       child = create_empty_genotype (parents[0]->dna_length,
 				     parents[0]->n_cromosomes,
-				     parents[0]->n_mitocondrial);
+				     parents[0]->n_mitocondrial,
+				     parents[0]->head);
       
       crossover (p, parents, child);
       mutate (p, child);

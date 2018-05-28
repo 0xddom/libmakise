@@ -27,11 +27,12 @@ typedef struct genotype_t {
   int n_cromosomes;
   int n_mitocondrial;
   bool evaluated;
+  int head;
   Fitness fitness;
 } Genotype;
 
-Genotype *create_empty_genotype(int,int,int);
-Genotype *create_random_genotype(int,int,int);
+Genotype *create_empty_genotype(int,int,int,int);
+Genotype *create_random_genotype(int,int,int,int);
 void print_genotype(Genotype *, FILE *f);
 gender get_gender(Genotype *);
 void set_gender(Genotype *, gender);

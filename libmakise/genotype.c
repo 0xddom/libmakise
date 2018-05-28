@@ -25,7 +25,7 @@
  * Min size: 1 + N
  */
 
-Genotype *create_empty_genotype(int dna_length, int n_cromosomes, int n_mitocondrial) {
+Genotype *create_empty_genotype(int dna_length, int n_cromosomes, int n_mitocondrial, int head) {
   Genotype *g = (Genotype*)malloc (sizeof (Genotype));
 
   assert (dna_length >= n_mitocondrial);
@@ -41,6 +41,7 @@ Genotype *create_empty_genotype(int dna_length, int n_cromosomes, int n_mitocond
   g->evaluated = false;
   g->fitness.hits = 0;
   g->fitness.value = 0.0;
+  g->head = head;
 
   g->dna = (gene*)calloc (sizeof (gene), dna_size (g));
 
@@ -53,9 +54,9 @@ Genotype *create_empty_genotype(int dna_length, int n_cromosomes, int n_mitocond
   return g;
 }
 
-Genotype *create_random_genotype(int dna_length, int n_cromosomes, int n_mitocondrial) {
+Genotype *create_random_genotype(int dna_length, int n_cromosomes, int n_mitocondrial, int head) {
   int i;
-  Genotype *g = create_empty_genotype (dna_length, n_cromosomes, n_mitocondrial);
+  Genotype *g = create_empty_genotype (dna_length, n_cromosomes, n_mitocondrial, head);
 
   for (i = 0; i < g->length; i++) {
     g->dna[i] = (gene)rand ();

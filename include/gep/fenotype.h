@@ -8,8 +8,8 @@
 
 typedef struct {
   Genotype *genotype;
-  Tree **tree;
-  
+  Tree **adfs;
+  Tree *tree;
 } Fenotype;
 
 Fenotype *genotype_to_fenotype(Genotype*);

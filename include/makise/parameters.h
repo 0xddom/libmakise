@@ -30,6 +30,8 @@ typedef struct parameters_t {
   int cromosomes;
   int n_mitocondrial;
   int migration;
+  int head;
+  int arity;
 } Parameters;
 
 Parameters *parse_parameters(int,char **);

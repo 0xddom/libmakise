@@ -62,11 +62,22 @@ Tree *compile_to_tree(char *source, Sym *sym_table) {
 }
 
 void free_tree(Tree *t) {
-  int i;
-  
-  for (i = 0; i < t->arity; i++) 
-    free_tree (&t->child[i]);
-
-  free (t->child);
+  if (t->child != NULL) free (t->child);
   free (t);
+}
+
+void eval_tree(Tree *t, void *data) {
+  ((node_op_func)t->op_func) (t, data);
+}
+
+int print_tree(Tree *t, char *s) {
+  int i, j;
+  i = sprintf (s, "(%c", t->sym);
+  if (t->arity > 0) i += sprintf (s + i, " ");
+  for (j = 0; j < t->arity; j++) {
+    i += print_tree (&t->child[j], s + i);
+  }
+  i += sprintf (s + i, ")");
+
+  return i;
 }
