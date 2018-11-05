@@ -1,6 +1,6 @@
 # Makise
 
-Makise is a library for running genetic algorithms.
+Makise is a library for running genetic algorithms. When time permits I want to expand and clean-up the code and the public API.
 
 The internal representation of the genotypes is the very common binary string.
 
